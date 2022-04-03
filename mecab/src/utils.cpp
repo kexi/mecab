@@ -12,7 +12,9 @@
 #endif
 
 #ifdef HAVE_SYS_TYPES_H
+#include <unistd.h>
 #include <sys/types.h>
+#include <pwd.h>
 #endif
 
 #ifdef HAVE_DIRENT_H
@@ -381,6 +383,13 @@ bool load_dictionary_resource(Param *param) {
   }
   remove_filename(&rcfile);
   replace_string(&dicdir, "$(rcpath)", rcfile);
+#ifdef HAVE_SYS_TYPES_H
+  struct passwd *pw = getpwuid(getuid());
+  const char *homedir = pw->pw_dir;
+  replace_string(&dicdir, "$(userdir)", homedir);
+#else
+  replace_string(&dicdir, "$(userdir)", getenv("USERPROFILE"));
+#endif
   param->set<std::string>("dicdir", dicdir, true);
   dicdir = create_filename(dicdir, DICRC);
 
